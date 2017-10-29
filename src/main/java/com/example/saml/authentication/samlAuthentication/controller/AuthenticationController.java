@@ -25,6 +25,7 @@ public class AuthenticationController {
 
     @GetMapping
     public ResponseEntity<String> login() throws JOSEException {
+        // TODO: 10/29/17 add verification of authentication against SAML IdP
         log.info("Authenticating new user");
         LocalDateTime expiration = LocalDateTime.now(ZoneId.systemDefault());
         expiration = expiration.plusMinutes(15);
