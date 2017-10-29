@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script>
+    var token = '';
+    var counter = 0;
+    function handleError(error){
+        const status = error.status;
+        console.info('Handling error with status' + status);
+        $("#results").empty();
+        $("#results").append(status);
+        if(status === 401) {
+            authenticate();
+        }
+    }
+
+    function authenticate(){
+        console.info('Sending authentication request to API');
+        $.get("http://localhost:8080/login")
+            .done(function(data){
+                console.info('Authentication success');
+                token = data;
+                loadUsers();
+            })
+            .fail(function(error){
+                counter++;
+                console.error('Attempt ' + counter);
+                console.error('Authentication fails');
+                handleError(error.status);
+            });
+    }
+
+    function drawUsers(users) {
+        console.info('Drawing users');
+        ul = $("<ul>");
+        for (var i = 0; i < users.length; ++i) {
+            ul.append("<li>"+users[i].name+"</li>");
+        }
+        $("#results").empty();
+        $("#results").append(ul);
+    }
+
+    function loadUsers(){
+        if(counter <= 3) {
+            console.info('Getting users from API');
+            $.ajax({
+                url: "http://localhost:8080/api/users",
+                type: 'GET',
+                datatype: 'json',
+                success: drawUsers,
+                error: handleError,
+                beforeSend: setHeader
+              });
+        }
+    }
+
+    function setHeader(xhr) {
+      xhr.setRequestHeader('Authentication', token);
+    }
+
+    $(document).ready(function(){
+        $("#button_1").click(function(){
+            loadUsers();
+        });
+    });
+
+
+    </script>
+</head>
+<body>
+
+<button id="button_1">click</button>
+<div id="results"></div>
+</body>
+</html>
