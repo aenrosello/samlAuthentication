@@ -1,4 +1,4 @@
-package com.example.saml.authentication.samlAuthentication.configuration;
+package com.example.saml.authentication.samlAuthentication.configuration.jwt;
 
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter
     private Logger log = Logger.getLogger(AuthenticationFilter.class);
     private static final String HEADER_SECURITY_TOKEN = "Authentication";
 
-    AuthenticationFilter(String matcher, AuthenticationManager authenticationManager) {
+    public AuthenticationFilter(String matcher, AuthenticationManager authenticationManager) {
         super(matcher);
         super.setAuthenticationManager(authenticationManager);
     }

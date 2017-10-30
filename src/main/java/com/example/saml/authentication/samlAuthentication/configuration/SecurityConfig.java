@@ -1,6 +1,8 @@
 package com.example.saml.authentication.samlAuthentication.configuration;
 
 
+import com.example.saml.authentication.samlAuthentication.configuration.jwt.AuthenticationFilter;
+import com.example.saml.authentication.samlAuthentication.configuration.jwt.AuthenticationProviderImpl;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -20,7 +22,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.antMatcher(matcher)
                 .authorizeRequests()
-                .anyRequest().authenticated();
+                .anyRequest()
+                .authenticated();
     }
 
     @Override

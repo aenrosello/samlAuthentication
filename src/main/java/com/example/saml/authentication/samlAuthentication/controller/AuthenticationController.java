@@ -1,6 +1,6 @@
 package com.example.saml.authentication.samlAuthentication.controller;
 
-import com.example.saml.authentication.samlAuthentication.configuration.AuthenticationProviderImpl;
+import com.example.saml.authentication.samlAuthentication.configuration.jwt.AuthenticationProviderImpl;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -10,8 +10,11 @@ import com.nimbusds.jwt.SignedJWT;
 import org.apache.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
@@ -24,21 +27,28 @@ public class AuthenticationController {
     private Logger log = Logger.getLogger(AuthenticationController.class);
 
     @GetMapping
-    public ResponseEntity<String> login() throws JOSEException {
-        // TODO: 10/29/17 add verification of authentication against SAML IdP
-        log.info("Authenticating new user");
-        LocalDateTime expiration = LocalDateTime.now(ZoneId.systemDefault());
-        expiration = expiration.plusMinutes(15);
-        //build claims
-        JWTClaimsSet.Builder jwtClaimsSetBuilder = new JWTClaimsSet.Builder();
-        jwtClaimsSetBuilder.expirationTime(Date.from(expiration.atZone(ZoneId.systemDefault()).toInstant()));
-        jwtClaimsSetBuilder.claim("APP", "SAMPLE");
+    public ResponseEntity<String> login(@RequestParam String relayState) throws JOSEException {
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        //signature
-        SignedJWT token = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), jwtClaimsSetBuilder.build());
-        token.sign(new MACSigner(AuthenticationProviderImpl.JWT_SECRET));
-        log.info("Sending token " + token.serialize());
-        return new ResponseEntity<>(token.serialize(), HttpStatus.OK);
+        if (authentication == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        } else {
+            log.info("Authenticating new user");
+            log.info("Relay State = " + relayState);
+            LocalDateTime expiration = LocalDateTime.now(ZoneId.systemDefault());
+            expiration = expiration.plusMinutes(15);
+            //build claims
+            JWTClaimsSet.Builder jwtClaimsSetBuilder = new JWTClaimsSet.Builder();
+            jwtClaimsSetBuilder.expirationTime(Date.from(expiration.atZone(ZoneId.systemDefault()).toInstant()));
+            jwtClaimsSetBuilder.claim("APP", "SAMPLE");
+
+            //signature
+            SignedJWT token = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), jwtClaimsSetBuilder.build());
+            token.sign(new MACSigner(AuthenticationProviderImpl.JWT_SECRET));
+            log.info("Sending token " + token.serialize());
+            //todo redirect to relayState instead of just simple send the response
+            return new ResponseEntity<>(token.serialize(), HttpStatus.OK);
+        }
     }
 }
 

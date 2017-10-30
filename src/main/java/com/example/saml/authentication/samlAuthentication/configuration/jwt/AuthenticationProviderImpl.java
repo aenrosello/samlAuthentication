@@ -1,4 +1,4 @@
-package com.example.saml.authentication.samlAuthentication.configuration;
+package com.example.saml.authentication.samlAuthentication.configuration.jwt;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.crypto.MACVerifier;

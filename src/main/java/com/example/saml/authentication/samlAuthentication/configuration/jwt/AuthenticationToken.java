@@ -1,4 +1,4 @@
-package com.example.saml.authentication.samlAuthentication.configuration;
+package com.example.saml.authentication.samlAuthentication.configuration.jwt;
 
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -9,12 +9,12 @@ public class AuthenticationToken extends AbstractAuthenticationToken {
 
     private Object principal;
 
-    public AuthenticationToken(Object principal) {
+    AuthenticationToken(Object principal) {
         super(null);
         this.principal = principal;
     }
 
-    public AuthenticationToken(Object principal, Object details, Collection<? extends GrantedAuthority> authorities) {
+    AuthenticationToken(Object principal, Object details, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.principal = principal;
         super.setDetails(details);

@@ -24,6 +24,7 @@
 		<java.version>1.8</java.version>
         <dataFactory.version>0.7.2</dataFactory.version>
         <jwt.version>4.37</jwt.version>
+        <spring.security.saml.version>1.0.2.RELEASE</spring.security.saml.version>
 	</properties>
 
 	<dependencies>
@@ -57,11 +58,17 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
-		</dependency>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security.extensions</groupId>
+            <artifactId>spring-security-saml2-core</artifactId>
+            <version>${spring.security.saml.version}</version>
+        </dependency>
 	</dependencies>
 
 	<build>
