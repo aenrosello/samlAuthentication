@@ -57,7 +57,7 @@ public class AuthenticationController {
             token.sign(signer);
 
             log.info("Sending token " + token.serialize());
-            //todo redirect to relayState instead of just simple send the response
+            //redirect to relayState instead of just simple send the response
             response.setStatus(HttpStatus.OK.value());
             StringBuilder target = new StringBuilder();
             target.append("?token=");
