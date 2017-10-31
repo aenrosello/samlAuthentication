@@ -1,6 +1,7 @@
 package com.example.saml.authentication.samlAuthentication.configuration.jwt;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.log4j.Logger;
@@ -29,9 +30,9 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
 
         try {
             SignedJWT signedJWT = SignedJWT.parse(jwtToken);
-            boolean isVerified = signedJWT.verify(new MACVerifier(JWT_SECRET.getBytes()));
+            JWSVerifier verifier = new MACVerifier(JWT_SECRET);
 
-            if (!isVerified) {
+            if (!signedJWT.verify(verifier)) {
                 throw new BadCredentialsException("Invalid token signature");
             }
 

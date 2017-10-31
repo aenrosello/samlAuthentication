@@ -17,7 +17,7 @@ import java.io.IOException;
 
 public class AuthenticationFilter extends AbstractAuthenticationProcessingFilter {
     private Logger log = Logger.getLogger(AuthenticationFilter.class);
-    private static final String HEADER_SECURITY_TOKEN = "Authentication";
+    public static final String HEADER_SECURITY_TOKEN = "Authentication";
 
     public AuthenticationFilter(String matcher, AuthenticationManager authenticationManager) {
         super(matcher);

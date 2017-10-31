@@ -5,9 +5,10 @@
     <script>
     var token = '';
     var counter = 0;
+
     function handleError(error){
         const status = error.status;
-        console.info('Handling error with status' + status);
+        console.info('Handling error with status = ' + status);
         const result = $("#results");
         result.empty();
         result.append(status);
@@ -16,25 +17,16 @@
         }
     }
 
+    var xhr;
+    var _orgAjax = jQuery.ajaxSettings.xhr;
+    $.ajaxSettings.xhr = function () {
+        xhr = _orgAjax();
+        return xhr;
+    };
+
     function authenticate(){
         console.info('Sending authentication request to API');
-        $.get("http://localhost:8080/login", {'relayState': 'http://localhost:8080/'})
-            .done(function(data){
-                if (data.includes("<html>")) {
-                    //todo deal with html data
-                    console.info('some data from API received');
-                } else {
-                    console.info('Authentication success');
-                    token = data;
-                    loadUsers();
-                }
-            })
-            .fail(function(error){
-                counter++;
-                console.error('Attempt ' + counter);
-                console.error('Authentication fails');
-                handleError(error.status);
-            });
+        window.location.replace("http://localhost:8080/login?relayState=http://localhost:8080/index.html")
     }
 
     function drawUsers(users) {
@@ -54,7 +46,8 @@
             $.ajax({
                 url: "http://localhost:8080/api/users",
                 type: 'GET',
-                datatype: 'json',
+                dataType: 'json',
+                crossDomain: true,
                 success: drawUsers,
                 error: handleError,
                 beforeSend: setHeader
@@ -66,7 +59,25 @@
       xhr.setRequestHeader('Authentication', token);
     }
 
+    function getUrlParam(param) {
+        console.info('getting param = ' + param);
+        var url = window.location.search.substring(1);
+        var urlVariables = url.split('&');
+        for (var i = 0; i < urlVariables.length; i++) {
+            var paramName = urlVariables[i].split('=');
+            if (paramName[0] === param) {
+                return paramName[1];
+            }
+        }
+    }
+
     $(document).ready(function(){
+        const urlToken = getUrlParam('token');
+        if (urlToken) {
+            console.info('assigning token to const');
+            token = urlToken;
+            window.history.pushState('object', document.title, location.href.split("?")[0]);
+        }
         $("#button_1").click(function(){
             loadUsers();
         });

@@ -340,23 +340,16 @@ public class SamlSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
+                .csrf().disable()
                 .exceptionHandling()
-                .authenticationEntryPoint(samlEntryPoint());
-        http
-                .csrf()
-                .disable();
-        http
+                .authenticationEntryPoint(samlEntryPoint())
+                .and()
                 .addFilterBefore(metadataGeneratorFilter(), ChannelProcessingFilter.class)
-                .addFilterAfter(samlFilter(), BasicAuthenticationFilter.class);
-        http
+                .addFilterAfter(samlFilter(), BasicAuthenticationFilter.class)
                 .authorizeRequests()
                 .antMatchers("/error", "/saml/**", "/index.html")
                 .permitAll()
                 .anyRequest()
                 .authenticated();
-        http
-                .logout()
-                .logoutSuccessUrl("/");
     }
-
 }
