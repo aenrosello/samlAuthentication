@@ -158,8 +158,10 @@ public class SamlSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public KeyManager keyManager() {
         ClassPathResource storeFile = new ClassPathResource("/saml/samlKeystore.jks");
+        //keystore password
         String storePass = "samlstorepass";
         Map<String, String> passwords = new HashMap<>();
+        //username and password for private key
         passwords.put("mykeyalias", "mykeypass");
         return new JKSKeyManager(storeFile, storePass, passwords, "mykeyalias");
     }
