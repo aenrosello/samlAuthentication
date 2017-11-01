@@ -5,10 +5,9 @@ import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.commons.httpclient.protocol.ProtocolSocketFactory;
 import org.apache.velocity.app.VelocityEngine;
+import org.opensaml.saml2.metadata.provider.HTTPMetadataProvider;
 import org.opensaml.saml2.metadata.provider.MetadataProvider;
 import org.opensaml.saml2.metadata.provider.MetadataProviderException;
-import org.opensaml.saml2.metadata.provider.ResourceBackedMetadataProvider;
-import org.opensaml.util.resource.ClasspathResource;
 import org.opensaml.util.resource.ResourceException;
 import org.opensaml.xml.parse.StaticBasicParserPool;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -47,13 +46,31 @@ import org.springframework.security.web.authentication.logout.SecurityContextLog
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.*;
 
 /**
- * @author slemoine
+ * @author aenrosello
  */
 @Configuration
 public class SamlSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private Timer backgroundTaskTimer;
+    private MultiThreadedHttpConnectionManager multiThreadedHttpConnectionManager;
+
+    @PostConstruct
+    public void init() {
+        this.backgroundTaskTimer = new Timer(true);
+        this.multiThreadedHttpConnectionManager = new MultiThreadedHttpConnectionManager();
+    }
+
+    @PreDestroy
+    public void destroy() {
+        this.backgroundTaskTimer.purge();
+        this.backgroundTaskTimer.cancel();
+        this.multiThreadedHttpConnectionManager.shutdown();
+    }
 
     @Bean
     public WebSSOProfileOptions defaultWebSSOProfileOptions() {
@@ -140,7 +157,7 @@ public class SamlSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public KeyManager keyManager() {
-        ClassPathResource storeFile = new ClassPathResource("/saml-keystore.jks");
+        ClassPathResource storeFile = new ClassPathResource("/saml/samlKeystore.jks");
         String storePass = "samlstorepass";
         Map<String, String> passwords = new HashMap<>();
         passwords.put("mykeyalias", "mykeypass");
@@ -237,12 +254,7 @@ public class SamlSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public HttpClient httpClient() {
-        return new HttpClient(multiThreadedHttpConnectionManager());
-    }
-
-    @Bean
-    public MultiThreadedHttpConnectionManager multiThreadedHttpConnectionManager() {
-        return new MultiThreadedHttpConnectionManager();
+        return new HttpClient(this.multiThreadedHttpConnectionManager);
     }
 
     @Bean
@@ -294,19 +306,15 @@ public class SamlSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public ExtendedMetadataDelegate idpMetadata()
             throws MetadataProviderException, ResourceException {
-
-        Timer backgroundTaskTimer = new Timer(true);
-
-        ResourceBackedMetadataProvider resourceBackedMetadataProvider =
-                new ResourceBackedMetadataProvider(backgroundTaskTimer, new ClasspathResource("/ssocircle-metadata" +
-                        ".xml"));
-
-        resourceBackedMetadataProvider.setParserPool(parserPool());
-
+        String idpSSOCircleMetadataURL = "https://idp.ssocircle.com/idp-meta.xml";
+        HTTPMetadataProvider httpMetadataProvider = new HTTPMetadataProvider(
+                this.backgroundTaskTimer, httpClient(), idpSSOCircleMetadataURL);
+        httpMetadataProvider.setParserPool(parserPool());
         ExtendedMetadataDelegate extendedMetadataDelegate =
-                new ExtendedMetadataDelegate(resourceBackedMetadataProvider, extendedMetadata());
-        extendedMetadataDelegate.setMetadataTrustCheck(true);
+                new ExtendedMetadataDelegate(httpMetadataProvider, extendedMetadata());
+        extendedMetadataDelegate.setMetadataTrustCheck(false);
         extendedMetadataDelegate.setMetadataRequireSignature(false);
+        this.backgroundTaskTimer.purge();
         return extendedMetadataDelegate;
     }
 
