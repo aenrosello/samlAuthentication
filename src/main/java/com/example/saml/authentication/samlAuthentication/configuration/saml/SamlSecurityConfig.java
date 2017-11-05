@@ -34,7 +34,6 @@ import org.springframework.security.saml.processor.SAMLBinding;
 import org.springframework.security.saml.processor.SAMLProcessorImpl;
 import org.springframework.security.saml.trust.httpclient.TLSProtocolConfigurer;
 import org.springframework.security.saml.trust.httpclient.TLSProtocolSocketFactory;
-import org.springframework.security.saml.userdetails.SAMLUserDetailsService;
 import org.springframework.security.saml.util.VelocityFactory;
 import org.springframework.security.saml.websso.*;
 import org.springframework.security.web.DefaultSecurityFilterChain;
@@ -296,14 +295,9 @@ public class SamlSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public SAMLUserDetailsService samlUserDetailsService() {
-        return new SamlUserDetailsServiceImpl();
-    }
-
-    @Bean
     public SAMLAuthenticationProvider samlAuthenticationProvider() {
         SAMLAuthenticationProvider samlAuthenticationProvider = new SAMLAuthenticationProvider();
-        samlAuthenticationProvider.setUserDetails(samlUserDetailsService());
+        samlAuthenticationProvider.setUserDetails(new SamlUserDetailsServiceImpl());
         samlAuthenticationProvider.setForcePrincipalAsString(false);
         return samlAuthenticationProvider;
     }
