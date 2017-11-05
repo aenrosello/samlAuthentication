@@ -18,7 +18,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.saml.*;
+import org.springframework.security.saml.SAMLAuthenticationProvider;
+import org.springframework.security.saml.SAMLBootstrap;
+import org.springframework.security.saml.SAMLEntryPoint;
+import org.springframework.security.saml.SAMLProcessingFilter;
 import org.springframework.security.saml.context.SAMLContextProviderImpl;
 import org.springframework.security.saml.key.JKSKeyManager;
 import org.springframework.security.saml.key.KeyManager;
@@ -40,9 +43,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -114,33 +114,6 @@ public class SamlSecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    public HttpStatusReturningLogoutSuccessHandler successLogoutHandler() {
-        return new HttpStatusReturningLogoutSuccessHandler();
-    }
-
-    @Bean
-    public SecurityContextLogoutHandler logoutHandler() {
-        SecurityContextLogoutHandler logoutHandler =
-                new SecurityContextLogoutHandler();
-        logoutHandler.setInvalidateHttpSession(true);
-        logoutHandler.setClearAuthentication(true);
-        return logoutHandler;
-    }
-
-    @Bean
-    public SAMLLogoutFilter samlLogoutFilter() {
-        return new SAMLLogoutFilter(successLogoutHandler(),
-                new LogoutHandler[]{logoutHandler()},
-                new LogoutHandler[]{logoutHandler()});
-    }
-
-    @Bean
-    public SAMLLogoutProcessingFilter samlLogoutProcessingFilter() {
-        return new SAMLLogoutProcessingFilter(successLogoutHandler(),
-                logoutHandler());
-    }
-
-    @Bean
     public MetadataGeneratorFilter metadataGeneratorFilter() {
         return new MetadataGeneratorFilter(metadataGenerator());
     }
@@ -186,12 +159,6 @@ public class SamlSecurityConfig extends WebSecurityConfigurerAdapter {
 
         chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/saml/SSO/**"),
                 samlWebSSOProcessingFilter()));
-
-        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/saml/logout/**"),
-                samlLogoutFilter()));
-
-        chains.add(new DefaultSecurityFilterChain(new AntPathRequestMatcher("/saml/SingleLogout/**"),
-                samlLogoutProcessingFilter()));
 
         return new FilterChainProxy(chains);
     }
@@ -277,7 +244,7 @@ public class SamlSecurityConfig extends WebSecurityConfigurerAdapter {
     // SAML 2.0 WebSSO Assertion Consumer
     @Bean
     public WebSSOProfileConsumer webSSOprofileConsumer() {
-        return new WebSSOProfileConsumerImpl();
+        return new CustomWebSSOProfileConsumer();
     }
 
     // SAML 2.0 Web SSO profile
