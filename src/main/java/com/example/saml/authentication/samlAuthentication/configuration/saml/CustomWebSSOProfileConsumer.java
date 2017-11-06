@@ -33,9 +33,7 @@ public class CustomWebSSOProfileConsumer extends WebSSOProfileConsumerImpl {
                                 this.log.info("One Time Use condition detected.");
                                 //note: if your IdP supports OneTimeUse replace this throw by using the check mechanism desired
                                 throw new SAMLException("System cannot honor OneTimeUse condition of the Assertion for WebSSO");
-                            }
-
-                            if (conditionQName.equals(ProxyRestriction.DEFAULT_ELEMENT_NAME)) {
+                            } else if (conditionQName.equals(ProxyRestriction.DEFAULT_ELEMENT_NAME)) {
                                 ProxyRestriction restriction = (ProxyRestriction) condition;
                                 this.log.debug("Honoring ProxyRestriction with count {}, system does not issue assertions to 3rd parties", restriction.getProxyCount());
                             } else {
